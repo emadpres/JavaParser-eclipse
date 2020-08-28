@@ -1,0 +1,6 @@
+.idea/
+JavaParser.iml
+classes/
+*.log
+out/
+target/
