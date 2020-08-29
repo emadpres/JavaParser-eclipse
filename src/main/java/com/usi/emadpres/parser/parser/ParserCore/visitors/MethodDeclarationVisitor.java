@@ -32,12 +32,12 @@ public class MethodDeclarationVisitor extends ASTVisitor {
         this.unit.accept(this);
     }
 
-    @Override
-    public boolean visit(AnnotationTypeMemberDeclaration node) {
-        IMethodBinding binding = node.resolveBinding();
-        extractMethodDeclaration(binding, node);
-        return true;
-    }
+//    @Override
+//    public boolean visit(AnnotationTypeMemberDeclaration node) { ---> This is something different than Method Declaration. Maybe in future we support it, but not in this visitor
+//        IMethodBinding binding = node.resolveBinding();
+//        extractMethodDeclaration(binding, node);
+//        return true;
+//    }
 
     @Override
 	public boolean visit(MethodDeclaration node) {

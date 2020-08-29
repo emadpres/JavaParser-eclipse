@@ -165,7 +165,8 @@ public class EclipseJavaParser {
                 } catch (Exception e)
                 {
                     logger.error("{} --> Error while parsing method invocations: {} @ {}", projectName, fullPath, commitSHA);
-                    e.printStackTrace();
+                    logger.error("Exception: ", e);
+                    //e.printStackTrace();
                     //PrintASTProblems(fullPath, ast);
                 }
 
@@ -178,7 +179,8 @@ public class EclipseJavaParser {
                     }
                 } catch (Exception e) {
                     logger.error("{} --> Error while parsing method declarations: {} @ {}", projectName, fullPath, commitSHA);
-                    e.printStackTrace();
+                    logger.error("Exception: ", e);
+                    //e.printStackTrace();
                     //PrintASTProblems(fullPath, ast);
                 }
 
@@ -202,7 +204,8 @@ public class EclipseJavaParser {
                 } catch (Exception e)
                 {
                     logger.error("{} --> Error while parsing packages/user defined types: {} @ {}", projectName, fullPath, commitSHA);
-                    e.printStackTrace();
+                    logger.error("Exception: ", e);
+                    //e.printStackTrace();
                     //PrintASTProblems(fullPath, ast);
                 }
             }
