@@ -81,7 +81,7 @@ public class ProjectParsingResultDB {
     public static ProjectParsingResult ReadFromSqlite(String projectName, Path path) {
         ProjectParsingResult res = new ProjectParsingResult(projectName);
         res.methodInvocations = MethodInvocationInfoDB.ReadFromSqlite(path,true);
-        res.methodDeclarations = MethodDeclarationInfoDB.LoadFromSqlite_Flatten(path);
+        res.methodDeclarations = MethodDeclarationInfoDB.ReadFromSqlite(path);
         // TODO res.userTypeDeclarations = UserTypeDeclarationDB.readAllRepoTypes(path.toString());
         // TODO res.packageDeclarations = PackagesDeclarationDB.readAllRepoPackages(path.toString());
         return null;

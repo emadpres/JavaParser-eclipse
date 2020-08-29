@@ -119,9 +119,9 @@ public class MethodDeclarationInfoDB {
         }
     }
 
-    public static List<MethodDeclarationInfo> LoadFromSqlite_Flatten(Path path)
+    public static List<MethodDeclarationInfo> ReadFromSqlite(Path path)
     {
-        Map<String, List<MethodDeclarationInfo>> res = LoadFromSqlite(path);
+        Map<String, List<MethodDeclarationInfo>> res = ReadFromSqlite_GroupByProject(path);
 
         List<MethodDeclarationInfo> flatten = new ArrayList<>();
         for(var v: res.values())
@@ -132,7 +132,7 @@ public class MethodDeclarationInfoDB {
     /**
      * Corresponding method to {@link #WriteToSqlite}
      */
-    public static Map<String/*project-name*/, List<MethodDeclarationInfo>> LoadFromSqlite(Path path) {
+    public static Map<String/*project-name*/, List<MethodDeclarationInfo>> ReadFromSqlite_GroupByProject(Path path) {
         if(!Files.exists(path) || !Files.isRegularFile(path)) {
             logger.error("Database not found at {}", path);
             return null;
