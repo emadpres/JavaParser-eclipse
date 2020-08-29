@@ -9,10 +9,7 @@ import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Schemas:
@@ -69,9 +66,9 @@ public class MethodInvocationInfoDB {
 
             // First Table
             String q_t1_drop = String.format("DROP TABLE IF EXISTS %s;", TABLE_INVOCATION_MAIN);
-            String q_t1_create = String.format("CREATE TABLE %s (method_invoc_id INTEGER, project_name TEXT, commit_sha TEXT, path TEXT, count INTEGER, qualified_class_name TEXT, method_name TEXT, return_type TEXT, n_args INTEGER, args_types TEXT, remark INTEGER, remark_str TEXT)",TABLE_INVOCATION_MAIN); // No "PRIMARY KEY(method_invoc_id)". Makes the insertion slow.
+            String q_t1_create = String.format("CREATE TABLE %s (method_invoc_id INTEGER, project_name TEXT, commit_sha TEXT, path TEXT, count INTEGER, qualified_class_name TEXT, method_name TEXT, return_type TEXT, n_args INTEGER, args_types TEXT, declarationId INTEGER, remark INTEGER, remark_str TEXT)",TABLE_INVOCATION_MAIN); // No "PRIMARY KEY(method_invoc_id)". Makes the insertion slow.
             if(withMethodSrcInformation)
-               q_t1_create = String.format("CREATE TABLE %s (method_invoc_id INTEGER, project_name TEXT, commit_sha TEXT, path TEXT, count INTEGER, qualified_class_name TEXT, method_name TEXT, return_type TEXT, n_args INTEGER, args_types TEXT, is_local_invoc INTEGER, is_java_invoc INTEGER, library_groupId TEXT, library_artifactId TEXT, library_version TEXT, remark INTEGER, remark_str TEXT)", TABLE_INVOCATION_MAIN); // No "PRIMARY KEY(method_invoc_id)". Makes the insertion slow.
+               q_t1_create = String.format("CREATE TABLE %s (method_invoc_id INTEGER, project_name TEXT, commit_sha TEXT, path TEXT, count INTEGER, qualified_class_name TEXT, method_name TEXT, return_type TEXT, n_args INTEGER, args_types TEXT, declarationId INTEGER, is_local_invoc INTEGER, is_java_invoc INTEGER, library_groupId TEXT, library_artifactId TEXT, library_version TEXT, remark INTEGER, remark_str TEXT)", TABLE_INVOCATION_MAIN); // No "PRIMARY KEY(method_invoc_id)". Makes the insertion slow.
             stmt.execute(q_t1_drop);
             stmt.execute(q_t1_create);
 
@@ -86,9 +83,9 @@ public class MethodInvocationInfoDB {
 
 
             // First table
-            String q_t1_insert = String.format("INSERT INTO %s VALUES (?,?,?,?,?,?,?,?,?,?,?,?)", TABLE_INVOCATION_MAIN);
+            String q_t1_insert = String.format("INSERT INTO %s VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)", TABLE_INVOCATION_MAIN);
             if(withMethodSrcInformation)
-               q_t1_insert = String.format("INSERT INTO %s VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", TABLE_INVOCATION_MAIN);
+               q_t1_insert = String.format("INSERT INTO %s VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", TABLE_INVOCATION_MAIN);
             PreparedStatement pstmt_invocationInfo = conn.prepareStatement(q_t1_insert);
 
             // Second table
@@ -133,27 +130,28 @@ public class MethodInvocationInfoDB {
                 pstmt_invocationInfo.setString(8,methodInvInfo.returnType);
                 pstmt_invocationInfo.setInt(9,methodInvInfo.nArgs);
                 pstmt_invocationInfo.setString(10,methodInvInfo.argsTypes);
+                pstmt_invocationInfo.setInt(11,methodInvInfo.methodDeclarationId);
 
                 if(!withMethodSrcInformation)
                 {
-                    pstmt_invocationInfo.setInt(11, methodInvInfo.remark);
-                    pstmt_invocationInfo.setString(12, methodInvInfo.remark_str);
+                    pstmt_invocationInfo.setInt(12, methodInvInfo.remark);
+                    pstmt_invocationInfo.setString(13, methodInvInfo.remark_str);
                 }
                 else {
-                    pstmt_invocationInfo.setInt(11, methodInvInfo.isLocalInvocation?1:0);
-                    pstmt_invocationInfo.setInt(12, methodInvInfo.isJavaInvocation?1:0);
+                    pstmt_invocationInfo.setInt(12, methodInvInfo.isLocalInvocation?1:0);
+                    pstmt_invocationInfo.setInt(13, methodInvInfo.isJavaInvocation?1:0);
                     if(methodInvInfo.originalLibrary==null) {
-                        pstmt_invocationInfo.setString(13, null);
                         pstmt_invocationInfo.setString(14, null);
                         pstmt_invocationInfo.setString(15, null);
+                        pstmt_invocationInfo.setString(16, null);
                     }
                     else {
-                        pstmt_invocationInfo.setString(13, methodInvInfo.originalLibrary.groupId);
-                        pstmt_invocationInfo.setString(14, methodInvInfo.originalLibrary.artifactId);
-                        pstmt_invocationInfo.setString(15, methodInvInfo.originalLibrary.version);
+                        pstmt_invocationInfo.setString(14, methodInvInfo.originalLibrary.groupId);
+                        pstmt_invocationInfo.setString(15, methodInvInfo.originalLibrary.artifactId);
+                        pstmt_invocationInfo.setString(16, methodInvInfo.originalLibrary.version);
                     }
-                    pstmt_invocationInfo.setInt(16, methodInvInfo.remark);
-                    pstmt_invocationInfo.setString(17, methodInvInfo.remark_str);
+                    pstmt_invocationInfo.setInt(17, methodInvInfo.remark);
+                    pstmt_invocationInfo.setString(18, methodInvInfo.remark_str);
                 }
                 pstmt_invocationInfo.addBatch();
 
@@ -210,10 +208,10 @@ public class MethodInvocationInfoDB {
      * @param path @see #ReadFromSqlite
      * @param withMethodSrcInformation @see #ReadFromSqlite
      */
-    public static Map<String/*project name*/, List<MethodInvocationInfo>> ReadFromSqlite_GroupByProjects(Path path, boolean withMethodSrcInformation/*, boolean withLineTable*/)
+    public static Map<String/*project name*/, List<MethodInvocationInfo>> ReadFromSqlite_GroupByProjects(Path path, boolean withMethodSrcInformation/*, boolean withLineTable*/, Set<String> ignoreColumnsForBackwardCompatibility)
     {
         Map<String, List<MethodInvocationInfo>> result = new HashMap<>();
-        List<MethodInvocationInfo> methodInvocationList = ReadFromSqlite(path, withMethodSrcInformation);
+        List<MethodInvocationInfo> methodInvocationList = ReadFromSqlite(path, withMethodSrcInformation, ignoreColumnsForBackwardCompatibility);
         for(var m: methodInvocationList)
         {
             if(result.containsKey(m.projectName))
@@ -238,7 +236,7 @@ public class MethodInvocationInfoDB {
      *                                 {@link MethodInvocationInfo#isLocalInvocation/isJavaInvocation/originalLibrary}
      * TODO -> @param withLineTable Should we also read {@link #TABLE_INVOCATION_LINES} table and fill {@link MethodInvocationInfo#lineNumbers} list?
      */
-    public static List<MethodInvocationInfo> ReadFromSqlite(Path path, boolean withMethodSrcInformation/*, boolean withLineTable*/)
+    public static List<MethodInvocationInfo> ReadFromSqlite(Path path, boolean withMethodSrcInformation/*, boolean withLineTable*/, Set<String> ignoreColumnsForBackwardCompatibility)
     {
         if(!Files.exists(path) || !Files.isRegularFile(path)) {
             logger.error("Database not found at {}", path);
@@ -276,6 +274,9 @@ public class MethodInvocationInfoDB {
                 int nArgs = rs.getInt("n_args");
                 String argsTypes = rs.getString("args_types");
                 ////////////////////////////
+                int methodDeclarationId = -1;
+                if(!ignoreColumnsForBackwardCompatibility.contains("declarationId"))
+                    methodDeclarationId = rs.getInt("declarationId");
                 boolean isLocalInvocation=false;
                 boolean isJavaInvocation=false;
                 String originalLibrary_groupId=null;
@@ -296,6 +297,7 @@ public class MethodInvocationInfoDB {
                 m.commitSHA = commitSHA;
                 m.fileRelativePath = filePath;
                 m.lineNumbersCount = count;
+                m.methodDeclarationId = methodDeclarationId;
                 if(withMethodSrcInformation)
                 {
                     m.isLocalInvocation = isLocalInvocation;

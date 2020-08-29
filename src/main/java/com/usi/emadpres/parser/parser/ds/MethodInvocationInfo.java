@@ -11,6 +11,7 @@ public class MethodInvocationInfo {
 
     // Method -> Common
     public int databaseId =-1; // Useful when we want to load from db and store them with exact same id for consistency with other tables/files
+    public int methodDeclarationId =-1; // Useful when we want to interconnect MethodInvocationInfo to MethodDeclarationInfo
     public String projectName; // repoFullName OR groupId:artifactId:version
     public String commitSHA=null;
     public String fileRelativePath; // relative to the project's root
@@ -27,9 +28,6 @@ public class MethodInvocationInfo {
     // "Remark" field are useful to store project-specific information (project = PhD project)
     public int remark=-1;
     public String remark_str=null;
-
-    // older code depends on these variable. Maybe we later delete them
-    public int methodDeclarationId =-1;
 
     public MethodInvocationInfo(String _qualifiedClassName, String _returnType, String _name, int _nArgs, String _argsType)
     {

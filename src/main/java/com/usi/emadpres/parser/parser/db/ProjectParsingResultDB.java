@@ -67,20 +67,28 @@ public class ProjectParsingResultDB {
 
     public static void WriteToSQLite(ProjectParsingResult result, Path path, boolean withLineTable)
     {
-        logger.info("Writing Result on DB 1/4: Method Invocations...");
-        MethodInvocationInfoDB.WriteToSqlite(result.methodInvocations, true, withLineTable, false, path.toString());
-        logger.info("Writing Result on DB 2/4: Method Declarations...");
-        MethodDeclarationInfoDB.WriteToSqlite(result.methodDeclarations, path.toString());
-        logger.info("Writing Result on DB 3/4: Packages...");
-        PackagesDeclarationDB.WriteToSQLite(result.packageDeclarations, path.toString());
-        logger.info("Writing Result on DB 4/4: User Defined Types...");
-        UserTypeDeclarationDB.WriteToSQLite(result.userTypeDeclarations, path.toString());
+        if(result.methodInvocations!=null) {
+            logger.info("Writing Result on DB 1/4: Method Invocations...");
+            MethodInvocationInfoDB.WriteToSqlite(result.methodInvocations, true, withLineTable, false, path.toString());
+        }
+        if(result.methodDeclarations!=null) {
+            logger.info("Writing Result on DB 2/4: Method Declarations...");
+            MethodDeclarationInfoDB.WriteToSqlite(result.methodDeclarations, path.toString());
+        }
+        if(result.packageDeclarations!=null) {
+            logger.info("Writing Result on DB 3/4: Packages...");
+            PackagesDeclarationDB.WriteToSQLite(result.packageDeclarations, path.toString());
+        }
+        if(result.userTypeDeclarations!=null) {
+            logger.info("Writing Result on DB 4/4: User Defined Types...");
+            UserTypeDeclarationDB.WriteToSQLite(result.userTypeDeclarations, path.toString());
+        }
 
     }
 
     public static ProjectParsingResult ReadFromSqlite(String projectName, Path path) {
         ProjectParsingResult res = new ProjectParsingResult(projectName);
-        res.methodInvocations = MethodInvocationInfoDB.ReadFromSqlite(path,true);
+        res.methodInvocations = MethodInvocationInfoDB.ReadFromSqlite(path,true, new HashSet<>());
         res.methodDeclarations = MethodDeclarationInfoDB.ReadFromSqlite(path);
         // TODO res.userTypeDeclarations = UserTypeDeclarationDB.readAllRepoTypes(path.toString());
         // TODO res.packageDeclarations = PackagesDeclarationDB.readAllRepoPackages(path.toString());
