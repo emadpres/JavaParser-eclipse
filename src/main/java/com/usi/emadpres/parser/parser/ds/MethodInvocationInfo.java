@@ -41,8 +41,13 @@ public class MethodInvocationInfo {
     @Override
     public String toString() {
         int t = qualifiedClassName.lastIndexOf('.');
-//        if(t==-1) t=-1;
+        if(t==-1) t=-1;
         return String.format("[%s]    %s",qualifiedClassName.substring(t+1), name);
+    }
+
+    public String ToSignatureString() {
+        int t = qualifiedClassName.lastIndexOf('.');
+        return String.format("[%s] %s (%s) -> %s",qualifiedClassName, name, argsTypes, returnType);
     }
 
     /**

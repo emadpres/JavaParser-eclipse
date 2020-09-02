@@ -153,7 +153,7 @@ public class EclipseJavaParser {
             public void acceptAST(String fullPath, CompilationUnit ast) {
                 //logger.debug("\t\t\t\tVisiting... {} --> {}", projectName, fullPath);
 
-                String fileRelativePath = !config.storePathsAsAbsolute?(fullPath.substring(pathToProject.toString().length()+1)):fullPath;
+                String fileRelativePath = !config.storePathsAsAbsolute?("./"+fullPath.substring(pathToProject.toString().length()+1)):fullPath;
                 String dirRelativePath = Paths.get(fileRelativePath).getParent().toString();
 
                 try {
@@ -221,13 +221,11 @@ public class EclipseJavaParser {
             logger.error("Exception While Parsing Project: {} (Eclipse Parsing operation SKIPPED]", pathToProject);
             logger.error("Exception: ", e);
         }
-        if(successful) {
-            ProjectParsingResult result = new ProjectParsingResult(projectName, methodInvocations, methodDeclarations,
-                                            packageDeclarations, userTypeDeclarations);
-            return result;
-        }
-        else
-            return null;
+
+        ProjectParsingResult result = new ProjectParsingResult(projectName, methodInvocations, methodDeclarations, packageDeclarations, userTypeDeclarations);
+        if(!successful)
+            result.incompleteResult = true;
+        return result;
     }
 
     private static void PrintASTProblems(String fullPath, CompilationUnit ast) {

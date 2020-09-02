@@ -27,8 +27,11 @@ public class ProjectParser {
     public static void main(String[] args) {
         {
             // Testing on Maven Library
-            MavenLibInfo libInfo = new MavenLibInfo("com.alibaba", "fastjson", "1.2.46");
-            ProjectParsingResult result = ProjectParser.ParseProject(libInfo.GetIdentifier(), null, libInfo.GetPathToSrcDir(), null, new ParserConfig(true, true, true));
+            //MavenLibInfo libInfo = new MavenLibInfo("com.alibaba", "fastjson", "1.2.46");
+            MavenLibInfo libInfo = new MavenLibInfo("org.apache.arrow", "arrow-vector", "0.10.0");
+            libInfo.Download(true);
+            libInfo.ExtractSrcIfNeeded();
+            ProjectParsingResult result = ProjectParser.ParseProject(libInfo.GetIdentifier(), null, String.valueOf(libInfo.GetPathToSrcDir()), null, new ParserConfig(false, true, false));
         }
 
         {
@@ -88,7 +91,7 @@ public class ProjectParser {
             if(seenLibs.contains(m)) continue;
             else seenLibs.add(m);
 
-            if (Files.exists(Paths.get(m.GetPathToLibJar())))
+            if (Files.exists(m.GetPathToLibJar()))
                 availableLibs.add(m);
             else {
                 miss++;
@@ -101,7 +104,7 @@ public class ProjectParser {
 
         String[] classpathArr = new String[availableLibs.size()];
         for(int i=0; i<availableLibs.size(); i++)
-            classpathArr[i] = availableLibs.get(i).GetPathToLibJar();
+            classpathArr[i] = String.valueOf(availableLibs.get(i).GetPathToLibJar());
 
         return classpathArr;
     }

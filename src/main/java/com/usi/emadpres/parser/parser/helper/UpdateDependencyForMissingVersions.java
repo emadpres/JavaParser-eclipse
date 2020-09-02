@@ -12,7 +12,7 @@ public class UpdateDependencyForMissingVersions {
     {
         for(MavenLibInfo mavenLib: dependencies)
         {
-            if (Files.exists(Paths.get(mavenLib.GetPathToLibJar())))
+            if (Files.exists(mavenLib.GetPathToLibJar()))
                 continue;
 
             String latestAvailableVersion = MavenLibInfo.GetLatestDownloadedVersionOfThisLibrary(mavenLib.groupId, mavenLib.artifactId);

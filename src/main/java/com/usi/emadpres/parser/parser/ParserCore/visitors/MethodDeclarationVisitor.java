@@ -75,17 +75,17 @@ public class MethodDeclarationVisitor extends ASTVisitor {
             javaDoc_lineStart = unit.getLineNumber(javadoc_block.getStartPosition());
             javaDoc_lineEnd = unit.getLineNumber(javadoc_block.getStartPosition() + javadoc_block.getLength());
         }
-        int javaCode_lineStart = (javadoc_block!=null)?(javaDoc_lineEnd+1):method_lineStart;
-        int JavaCode_lineEnd = method_lineEnd;
-        int methodName_line= unit.getLineNumber(((MethodDeclaration) node).getName().getStartPosition());
+        //int javaCode_lineStart = (javadoc_block!=null)?(javaDoc_lineEnd+1):method_lineStart;
+        //int JavaCode_lineEnd = method_lineEnd;
+        //int methodName_line= unit.getLineNumber(((MethodDeclaration) node).getName().getStartPosition());
 
         Block body = ((MethodDeclaration) node).getBody();
         String methodBody = "";
-        int methodBody_lineNumStart = -1;
-        int methodBody_lineNumEnd = -1;
+        //int methodBody_lineNumStart = -1;
+        //int methodBody_lineNumEnd = -1;
         if(body!=null) {
-            methodBody_lineNumStart = unit.getLineNumber(body.getStartPosition());
-            methodBody_lineNumEnd = unit.getLineNumber(body.getStartPosition() + body.getLength());
+            //methodBody_lineNumStart = unit.getLineNumber(body.getStartPosition());
+            //methodBody_lineNumEnd = unit.getLineNumber(body.getStartPosition() + body.getLength());
             // TODO: Body doesn't contain "signature" and starts from "{".
             // Solution: consider parent of `body node` and remove first X lines based on number of javadoc lines.
             methodBody = body.toString();
@@ -94,7 +94,7 @@ public class MethodDeclarationVisitor extends ASTVisitor {
         boolean isConstructor = methodDeclaration.isConstructor();
         IAnnotationBinding[] annotations = methodDeclaration.getAnnotations();
         List modifiers = node.modifiers(); // public, static, ...
-        List thrownExceptions = ((MethodDeclaration) node).thrownExceptionTypes();
+        //List thrownExceptions = ((MethodDeclaration) node).thrownExceptionTypes();
 
 
 

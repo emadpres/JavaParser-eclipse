@@ -37,12 +37,18 @@ public class MethodDeclarationInfo {
         this.lineNumberStart = _lineNumStart;
         this.lineNumberEnd = _lineNumEnd;
     }
+
     @Override
     public String toString() {
         int t = qualifiedClassName.lastIndexOf('.');
         if(t==-1) t=-1;
         return String.format("[%s]    %s",qualifiedClassName.substring(t+1), name);
         //return String.format("@Method Declaration: %s %s..%s (%s) <%d>\n", returnType, qualifiedClassName, name, argsTypes, nArgs);
+    }
+
+    public String ToSignatureString() {
+        int t = qualifiedClassName.lastIndexOf('.');
+        return String.format("[%s] %s (%s) -> %s",qualifiedClassName, name, argsTypes, returnType);
     }
 
     /**
