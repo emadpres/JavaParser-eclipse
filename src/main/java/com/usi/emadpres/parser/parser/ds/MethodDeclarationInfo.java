@@ -13,29 +13,33 @@ public class MethodDeclarationInfo {
     public String qualifiedClassName;
     public String name, returnType, argsTypes;
     public int nArgs;
-    public String methodBody_java="";
-    public int lineNumberStart=-1, lineNumberEnd=-1;
 
     // Method -> Declarations
     public boolean hasJavaDoc = false;
-    public int javaDocStartLine, javaDocEndLine;
-    public String javaDoc;
+    public int javaDocStartLine=-1, javaDocEndLine=-1;
+    public String javaDoc=null;
     public int isPublic=-1; //1:public 0:nonPublic //TODO: make this boolean
     public boolean isConstructor;
+    public boolean isDeprecated=false;
+    public boolean hasBody = false;
+    public String signatureCode_generated = null;
+    public String declarationCode_generated =null; //includes javadoc+signature+body
+    public int lineStart, lineEnd, signatureLine;
 
     // "Remark" field are useful to store project-specific information (project = PhD project)
     public int remark=-1;
     public String remark_str=null;
 
-    public MethodDeclarationInfo(String _qualifiedClassName, String _returnType, String _name, int _nArgs, String _argsType, int _lineNumStart, int _lineNumEnd)
+    public MethodDeclarationInfo(String _qualifiedClassName, String _returnType, String _name, int _nArgs, String _argsType, int _lineNumStart, int _lineNumEnd, int _signatureLine)
     {
         this.qualifiedClassName = _qualifiedClassName;
         this.returnType = _returnType;
         this.name = _name;
         this.nArgs = _nArgs;
         this.argsTypes = _argsType;
-        this.lineNumberStart = _lineNumStart;
-        this.lineNumberEnd = _lineNumEnd;
+        this.lineStart = _lineNumStart;
+        this.lineEnd = _lineNumEnd;
+        this.signatureLine = _signatureLine;
     }
 
     @Override

@@ -16,6 +16,7 @@ public class ProjectParsingResult {
     public List<MethodDeclarationInfo> methodDeclarations;
     public Set<PackageDeclaration> packageDeclarations;
     public Set<UserTypeDeclaration> userTypeDeclarations;
+    public List<JavaFileInfo> javaFiles=null;
 
     public ProjectParsingResult(String projectName)
     {

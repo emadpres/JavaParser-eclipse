@@ -14,7 +14,8 @@ import org.eclipse.jdt.core.dom.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -144,6 +145,7 @@ public class EclipseJavaParser {
         ArrayList<MethodDeclarationInfo> methodDeclarations = new ArrayList<>();
         Set<PackageDeclaration> packageDeclarations = new HashSet<>();
         Set<UserTypeDeclaration> userTypeDeclarations = new HashSet<>();
+        Set<String> relevantJavaFiles = new HashSet<>(); // used when config.storeJavaFileContent=true
 
         final int total = javaFilesArr.length;
         int counter=0;
@@ -153,14 +155,19 @@ public class EclipseJavaParser {
             public void acceptAST(String fullPath, CompilationUnit ast) {
                 //logger.debug("\t\t\t\tVisiting... {} --> {}", projectName, fullPath);
 
-                String fileRelativePath = !config.storePathsAsAbsolute?("./"+fullPath.substring(pathToProject.toString().length()+1)):fullPath;
-                String dirRelativePath = Paths.get(fileRelativePath).getParent().toString();
+                String relativePath = "./"+fullPath.substring(pathToProject.toString().length()+1);
+                String filePath = !config.storePathsAsAbsolute?relativePath:fullPath;
+                String dirRelativePath = Paths.get(filePath).getParent().toString();
 
                 try {
                     if(config.parseMethodInvocations) { // Method Invocations
-                        MethodInvocationVisitor iVisitor = new MethodInvocationVisitor(projectName, commitSHA, fileRelativePath, ast);
+                        MethodInvocationVisitor iVisitor = new MethodInvocationVisitor(projectName, commitSHA, filePath, ast);
                         iVisitor.Parse();
-                        methodInvocations.addAll(iVisitor.methodInvocations_thisUnit);
+                        if(iVisitor.methodInvocations_thisUnit.size()>0) {
+                            methodInvocations.addAll(iVisitor.methodInvocations_thisUnit);
+                            if (config.storeJavaFileContent)
+                                relevantJavaFiles.add(relativePath);
+                        }
                     }
                 } catch (Exception e)
                 {
@@ -173,9 +180,13 @@ public class EclipseJavaParser {
 
                 try {
                     if(config.parseMethodDeclarations) { // Method Declarations
-                        MethodDeclarationVisitor dVisitor = new MethodDeclarationVisitor(projectName, commitSHA, fileRelativePath, ast);
+                        MethodDeclarationVisitor dVisitor = new MethodDeclarationVisitor(projectName, commitSHA, filePath, ast);
                         dVisitor.Parse();
-                        methodDeclarations.addAll(dVisitor.methodDeclarations_thisUnit);
+                        if(dVisitor.methodDeclarations_thisUnit.size()>0) {
+                            methodDeclarations.addAll(dVisitor.methodDeclarations_thisUnit);
+                            if (config.storeJavaFileContent)
+                                relevantJavaFiles.add(relativePath);
+                        }
                     }
                 } catch (Exception e) {
                     logger.error("{} --> Error while parsing method declarations: {} @ {}", projectName, fullPath, commitSHA);
@@ -187,18 +198,23 @@ public class EclipseJavaParser {
                 try {
                     if(config.parsePackagesAndUserDefinedTypes) {
                         // Package declarations + Type declarations (class, enum, ...)
-                        UserTypesAndPackagesVisitor tVisitor = new UserTypesAndPackagesVisitor(projectName, commitSHA, fileRelativePath, dirRelativePath, ast);
+                        UserTypesAndPackagesVisitor tVisitor = new UserTypesAndPackagesVisitor(projectName, commitSHA, filePath, dirRelativePath, ast);
                         tVisitor.Parse();
                         if (tVisitor.packageNames.size() > 1) // every non-empty file has one package name only
                             logger.error("Fatal Error: Unexpected number of packages : Repo: {} / File: {} / Packages: {} / SHA: {}", pathToProject, fullPath, tVisitor.packageNames, commitSHA);
                         packageDeclarations.addAll(tVisitor.packageNames);
+
                         for (UserTypeDeclaration t : tVisitor.userTypeDeclarations) {
                             if (t.isBinded == false && tVisitor.packageNames.size() == 1) {
                                 PackageDeclaration thePackageDecl = tVisitor.packageNames.iterator().next();
                                 t.fullyQualifiedName = thePackageDecl.fullyQualifiedPackageName + t.fullyQualifiedName;
                             }
                             userTypeDeclarations.add(t);
+                        }
 
+                        if(tVisitor.packageNames.size()>0 || tVisitor.userTypeDeclarations.size()>0 ) {
+                            if (config.storeJavaFileContent)
+                                relevantJavaFiles.add(relativePath);
                         }
                     }
                 } catch (Exception e)
@@ -222,7 +238,37 @@ public class EclipseJavaParser {
             logger.error("Exception: ", e);
         }
 
+        List<JavaFileInfo> javaFilesInfos = null;
+        if(config.storeJavaFileContent) {
+            javaFilesInfos = new ArrayList<>();
+            for (String rpath:relevantJavaFiles)
+            {
+                int nLines = 0;
+                Path pp = pathToProject.resolve(rpath);
+                StringBuilder sb = new StringBuilder();
+                try (BufferedReader br = new BufferedReader(new FileReader(pp.toFile()))) {
+                    String line;
+                    boolean firstLine=true;
+                    while ((line = br.readLine()) != null) {
+                        if(!firstLine)  sb.append("\n");
+                        else            firstLine=false;
+                        sb.append(line);
+                        nLines++;
+                    }
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+                JavaFileInfo jf = new JavaFileInfo(projectName, commitSHA, rpath, nLines, sb.toString());
+                javaFilesInfos.add(jf);
+            }
+        }
+
         ProjectParsingResult result = new ProjectParsingResult(projectName, methodInvocations, methodDeclarations, packageDeclarations, userTypeDeclarations);
+        result.javaFiles = javaFilesInfos;
+
         if(!successful)
             result.incompleteResult = true;
         return result;

@@ -1,6 +1,7 @@
 package com.usi.emadpres.parser.parser.db;
 
 import com.usi.emadpres.parser.parser.ds.MethodDeclarationInfo;
+import com.usi.emadpres.parser.parser.ds.MethodInvocationInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,7 +23,15 @@ public class MethodDeclarationInfoDB {
 
     public static final String TABLE_DECLARATIONS_MAIN = "MethodDeclaration";
 
-    public static void WriteToSqlite(List<MethodDeclarationInfo> declarationsList, String path)
+    /**
+     *
+     * @param declarationsList
+     * @param useDatabaseIdFieldAsIds   Whether we should use {@link MethodInvocationInfo#databaseId} or newly created IDs.
+     *                                  Reusing existing databaseId comes in handy when we are re-storing a loaded data
+     *                                  and we want to ensure ID consistency between to-be-written db and older ones.
+     * @param path
+     */
+    public static void WriteToSqlite(List<MethodDeclarationInfo> declarationsList, boolean useDatabaseIdFieldAsIds, String path)
     {
         if(declarationsList==null) return;
 
@@ -44,7 +53,7 @@ public class MethodDeclarationInfoDB {
 
 
             String q_drop = String.format("DROP TABLE IF EXISTS %s;", TABLE_DECLARATIONS_MAIN);
-            String q_create = String.format("CREATE TABLE IF NOT EXISTS %s (method_decl_id INTEGER, project_name TEXT, commit_sha TEXT, path TEXT, line_start INTEGER, line_end INTEGER, isPublic INTEGER, isConstructor INTEGER, qualified_class_name TEXT, method_name TEXT, return_type TEXT, n_args INTEGER, args_types TEXT, method_body TEXT, has_javaDoc INTEGER, javadoc_line_start INTEGER, javadoc_line_end INTEGER, javadoc TEXT, remark INTEGER, remark_str TEXT)", TABLE_DECLARATIONS_MAIN);
+            String q_create = String.format("CREATE TABLE IF NOT EXISTS %s (method_decl_id INTEGER, project_name TEXT, commit_sha TEXT, path TEXT, line_start INTEGER, line_end INTEGER, signature_line INTEGER,  isPublic INTEGER, isConstructor INTEGER, is_deprecated INTEGER, has_body INTEGER, qualified_class_name TEXT, method_name TEXT, return_type TEXT, n_args INTEGER, args_types TEXT, method_body TEXT, has_javaDoc INTEGER, javadoc_line_start INTEGER, javadoc_line_end INTEGER, javadoc TEXT, remark INTEGER, remark_str TEXT)", TABLE_DECLARATIONS_MAIN);
 
 
 
@@ -58,50 +67,54 @@ public class MethodDeclarationInfoDB {
 //            }
             stmt.execute(q_create ); //create the table
 
-            String q_insert = String.format("INSERT INTO %s VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", TABLE_DECLARATIONS_MAIN);
+            String q_insert = String.format("INSERT INTO %s VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", TABLE_DECLARATIONS_MAIN);
 
             PreparedStatement pstmt = conn.prepareStatement(q_insert);
 
             final int BATCH_SIZE = 500000, total_declarations = declarationsList.size();
             int lastReportedProgress = -1, currentProgress;
-            for(int index=0; index<total_declarations; index++)
+            for(int methodDeclIndex=0; methodDeclIndex<total_declarations; methodDeclIndex++)
             {
 
-                currentProgress = (int)((index*100.0)/ total_declarations);
+                currentProgress = (int)((methodDeclIndex*100.0)/ total_declarations);
                 if(currentProgress-lastReportedProgress>= 1)
                 {
                     lastReportedProgress = currentProgress;
-                    //logger.info("%{} ({}/{})", currentProgress, index, total_declarations-1);
+                    //logger.info("%{} ({}/{})", currentProgress, methodDeclIndex, total_declarations-1);
                 }
 
-                MethodDeclarationInfo methodDecInfo = declarationsList.get(index);
-                pstmt.setInt(1, index);
-                //,, has_javaDoc INTEGER, javadoc TEXT
+                MethodDeclarationInfo methodDecInfo = declarationsList.get(methodDeclIndex);
+
+                pstmt.setInt(1, useDatabaseIdFieldAsIds?methodDecInfo.databaseId:methodDeclIndex);
                 pstmt.setString(2, methodDecInfo.projectName);
                 pstmt.setString(3, methodDecInfo.commitSHA);
                 pstmt.setString(4,methodDecInfo.fileRelativePath);
-                pstmt.setInt(5, methodDecInfo.lineNumberStart);
-                pstmt.setInt(6, methodDecInfo.lineNumberEnd);
-                pstmt.setInt(7, methodDecInfo.isPublic);
-                pstmt.setInt(8, methodDecInfo.isConstructor?1:0);
+                pstmt.setInt(5, methodDecInfo.lineStart);
+                pstmt.setInt(6, methodDecInfo.lineEnd);
+                pstmt.setInt(7, methodDecInfo.signatureLine);
 
-                pstmt.setString(9,methodDecInfo.qualifiedClassName);
-                pstmt.setString(10,methodDecInfo.name);
-                pstmt.setString(11,methodDecInfo.returnType);
-                pstmt.setInt(12,methodDecInfo.nArgs);
-                pstmt.setString(13,methodDecInfo.argsTypes);
-                pstmt.setString(14,methodDecInfo.methodBody_java);
+                pstmt.setInt(8, methodDecInfo.isPublic);
+                pstmt.setInt(9, methodDecInfo.isConstructor?1:0);
+                pstmt.setInt(10, methodDecInfo.isDeprecated?1:0);
+                pstmt.setInt(11, methodDecInfo.hasBody?1:0);
 
-                pstmt.setInt(15,methodDecInfo.hasJavaDoc==true?1:0);
-                pstmt.setInt(16,methodDecInfo.javaDocStartLine);
-                pstmt.setInt(17,methodDecInfo.javaDocEndLine);
-                pstmt.setString(18,methodDecInfo.javaDoc);
-                pstmt.setInt(19,methodDecInfo.remark);
-                pstmt.setString(20,methodDecInfo.remark_str);
+                pstmt.setString(12,methodDecInfo.qualifiedClassName);
+                pstmt.setString(13,methodDecInfo.name);
+                pstmt.setString(14,methodDecInfo.returnType);
+                pstmt.setInt(15,methodDecInfo.nArgs);
+                pstmt.setString(16,methodDecInfo.argsTypes);
+                pstmt.setString(17,methodDecInfo.declarationCode_generated);
+
+                pstmt.setInt(18,methodDecInfo.hasJavaDoc==true?1:0);
+                pstmt.setInt(19,methodDecInfo.javaDocStartLine);
+                pstmt.setInt(20,methodDecInfo.javaDocEndLine);
+                pstmt.setString(21,methodDecInfo.javaDoc);
+                pstmt.setInt(22,methodDecInfo.remark);
+                pstmt.setString(23,methodDecInfo.remark_str);
 
                 pstmt.addBatch();
 
-                if(index%BATCH_SIZE==0 || index+1==declarationsList.size())
+                if(methodDeclIndex%BATCH_SIZE==0 || methodDeclIndex+1==declarationsList.size())
                     pstmt.executeBatch();
             }
             conn.commit();
@@ -122,7 +135,8 @@ public class MethodDeclarationInfoDB {
     public static List<MethodDeclarationInfo> ReadFromSqlite(Path path)
     {
         Map<String, List<MethodDeclarationInfo>> res = ReadFromSqlite_GroupByProject(path);
-
+        if(res==null)
+            return null;
         List<MethodDeclarationInfo> flatten = new ArrayList<>();
         for(var v: res.values())
             flatten.addAll(v);
@@ -156,8 +170,11 @@ public class MethodDeclarationInfoDB {
                 String filePath = rs.getString("path");
                 int method_lineStart = rs.getInt("line_start");
                 int method_lineEnd = rs.getInt("line_end");
+                int signatureLineNumber = rs.getInt("signature_line");
                 int isPublic = rs.getInt("isPublic");
                 boolean isConstructor = rs.getInt("isConstructor")==1;
+                boolean isDeprecated = rs.getInt("is_deprecated")==1;
+                boolean hasBody = rs.getInt("has_body")==1;
                 String qualifiedClassName = rs.getString("qualified_class_name");
                 String methodName = rs.getString("method_name");
                 String returnType = rs.getString("return_type");
@@ -174,15 +191,18 @@ public class MethodDeclarationInfoDB {
                 String remark_str = rs.getString("remark_str");
 
 
-                MethodDeclarationInfo info = new MethodDeclarationInfo(qualifiedClassName, returnType, methodName, nArgs, argsTypes, method_lineStart, method_lineEnd);
+                MethodDeclarationInfo info = new MethodDeclarationInfo(qualifiedClassName, returnType, methodName,
+                        nArgs, argsTypes, method_lineStart, method_lineEnd, signatureLineNumber);
                 info.databaseId = id;
                 info.projectName = projectName;
                 info.commitSHA = commitSHA;
                 info.fileRelativePath = filePath;
                 info.isPublic = isPublic;
                 info.isConstructor = isConstructor;
+                info.isDeprecated = isDeprecated;
+                info.hasBody = hasBody;
                 info.hasJavaDoc = hasJavaDoc;
-                info.methodBody_java = methodBody;
+                info.declarationCode_generated = methodBody;
                 info.javaDocStartLine = javadoc_lineStart;
                 info.javaDocEndLine = javadoc_lineEnd;
                 info.javaDoc = javadoc;

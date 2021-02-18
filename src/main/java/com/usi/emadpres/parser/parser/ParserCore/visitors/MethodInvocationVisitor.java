@@ -78,10 +78,17 @@ public class MethodInvocationVisitor extends ASTVisitor {
         }
         int lineNumStart = unit.getLineNumber(node.getStartPosition()-1);
 
-        // Some Hints:
-        //   - BindingUtil.qualifiedName(binding.getMethodDeclaration().getReturnType()); ==> java.lang.List [GOOD]
-        //   - binding.getMethodDeclaration().getReturnType().getQualifiedName() ==> java.lang.List<com.boo.foo> [BAD]
-        //   - binding.getReturnType().getQualifiedName() ==> [BAD]
+        /** Experience:
+         *  Source code (original text): List<FieldVector>
+         *      A: --> java.util.List
+         *          - BindingUtil.qualifiedName(binding.getMethodDeclaration().getReturnType());
+         *          - BindingUtil.qualifiedName(binding.getReturnType());
+         *      B: --> List<FieldVector> = Literally text written in the code
+         *	        - binding.getReturnType().getName();
+         *	    C: --> java.util.List<org.apache.arrow.vector.FieldVector>
+         *	        - binding.getMethodDeclaration().getReturnType().getQualifiedName();
+         *	        - binding.getReturnType().getQualifiedName();
+         */
         String returnType = BindingUtil.qualifiedName(methodDeclaration.getReturnType());
         int nArgs = methodDeclaration.getParameterTypes().length;
         String argsTypes = "";

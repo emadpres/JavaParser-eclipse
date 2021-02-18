@@ -67,21 +67,28 @@ public class ProjectParsingResultDB {
 
     public static void WriteToSQLite(ProjectParsingResult result, Path path, boolean withLineTable)
     {
+        if(result==null)
+            logger.error("Writing Result Failed: NULL result");
         if(result.methodInvocations!=null) {
-            logger.info("Writing Result on DB 1/4: Method Invocations...");
+            logger.info("Writing Result on DB 1/5: Method Invocations...");
             MethodInvocationInfoDB.WriteToSqlite(result.methodInvocations, true, withLineTable, false, path.toString());
         }
         if(result.methodDeclarations!=null) {
-            logger.info("Writing Result on DB 2/4: Method Declarations...");
-            MethodDeclarationInfoDB.WriteToSqlite(result.methodDeclarations, path.toString());
+            logger.info("Writing Result on DB 2/5: Method Declarations...");
+            MethodDeclarationInfoDB.WriteToSqlite(result.methodDeclarations, false, path.toString());
         }
         if(result.packageDeclarations!=null) {
-            logger.info("Writing Result on DB 3/4: Packages...");
+            logger.info("Writing Result on DB 3/5: Packages...");
             PackagesDeclarationDB.WriteToSQLite(result.packageDeclarations, path.toString());
         }
         if(result.userTypeDeclarations!=null) {
-            logger.info("Writing Result on DB 4/4: User Defined Types...");
+            logger.info("Writing Result on DB 4/5: User Defined Types...");
             UserTypeDeclarationDB.WriteToSQLite(result.userTypeDeclarations, path.toString());
+        }
+        if(result.javaFiles!=null)
+        {
+            logger.info("Writing Result on DB 5/5: Java File Content...");
+            JavaFileInfoDB.WriteToSQLite(result.javaFiles, path, false);
         }
 
     }

@@ -1,6 +1,7 @@
 package com.usi.emadpres.parser.parser;
 
 import com.usi.emadpres.MavenUtils.ds.MavenLibInfo;
+import com.usi.emadpres.parser.parser.db.ProjectParsingResultDB;
 import com.usi.emadpres.parser.parser.ds.ParserConfig;
 import com.usi.emadpres.parser.parser.ds.ProjectParsingResult;
 import com.usi.emadpres.parser.parser.ParserCore.EclipseJavaParser;
@@ -8,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -28,10 +30,11 @@ public class ProjectParser {
         {
             // Testing on Maven Library
             //MavenLibInfo libInfo = new MavenLibInfo("com.alibaba", "fastjson", "1.2.46");
-            MavenLibInfo libInfo = new MavenLibInfo("org.apache.arrow", "arrow-vector", "0.10.0");
+            MavenLibInfo libInfo = new MavenLibInfo("org.apache.hadoop", "hadoop-ant", "2.6.0");
             libInfo.Download(true);
             libInfo.ExtractSrcIfNeeded();
-            ProjectParsingResult result = ProjectParser.ParseProject(libInfo.GetIdentifier(), null, String.valueOf(libInfo.GetPathToSrcDir()), null, new ParserConfig(false, true, false));
+            ProjectParsingResult result = ProjectParser.ParseProject(libInfo.GetIdentifier(), null, String.valueOf(libInfo.GetPathToSrcDir()), null, new ParserConfig(false, true, false,true,false));
+            ProjectParsingResultDB.WriteToSQLite(result, Path.of("./out/test.sqlite"));
         }
 
         {
