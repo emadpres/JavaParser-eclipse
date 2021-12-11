@@ -19,9 +19,9 @@
             <resource>
                 <directory>src/main/resources</directory>
                 <!-- Comment out line below when running code as standalone jar-->
-                <excludes>
-                    <exclude>**/log4j.properties</exclude>
-                </excludes>
+<!--                <excludes>-->
+<!--                    <exclude>**/log4j.properties</exclude>-->
+<!--                </excludes>-->
             </resource>
         </resources>
         <plugins>
@@ -56,12 +56,22 @@
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-log4j12</artifactId>
-            <version>1.7.25</version>
+            <version>1.7.32</version>
         </dependency>
         <dependency>
             <groupId>org.eclipse.jdt</groupId>
             <artifactId>org.eclipse.jdt.core</artifactId>
             <version>3.22.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.12.0</version>
+        </dependency>
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>2.11.0</version>
         </dependency>
         <dependency>
             <groupId>com.usi.emadpres</groupId>
