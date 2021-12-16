@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.*;
 
 /**
@@ -42,7 +43,7 @@ public class FindRepoDependantOnLatestVersionOfAtLeastOneLib {
         ArrayList<MavenLibInfo> mavenLibInfos = MavenLibUtils.loadMavenInfo(args[0]);
         //Map<String, ArrayList<MavenLibInfo>> allReposDependencies = RepoDependency.readRepoListAndDependencies(args[1]);
         Map<String, List<MavenLibInfo>> allReposDependencies = PomInfoDB.ReadSQLite_Repo2Library(args[1]);
-        Map<String/*Lib Identifier*/, Set<PackageDeclaration>> libIdentifierToPackages = PackagesDeclarationDB.readAllRepoPackages(args[2]);
+        Map<String/*Lib Identifier*/, Set<PackageDeclaration>> libIdentifierToPackages = PackagesDeclarationDB.ReadPackagesFromSqlite_GroupByProject(Path.of(args[2]));
         Map<String, List<String>> libsVersion = MavenLibUtils.giveVersionsSorted(mavenLibInfos, true, libIdentifierToPackages);
 
 

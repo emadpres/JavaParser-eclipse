@@ -1,10 +1,13 @@
 package com.usi.emadpres.parser.parser.db;
 
+import com.usi.emadpres.parser.parser.ds.MethodDeclarationInfo;
 import com.usi.emadpres.parser.parser.ds.PackageDeclaration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.sql.*;
 import java.util.*;
 
@@ -34,7 +37,7 @@ public class PackagesDeclarationDB {
 
 
             String q_drop = String.format("DROP TABLE IF EXISTS %s;", TABLE_PACKAGES);
-            String q_create = String.format("CREATE TABLE %s (package_decl_Id INTEGER, project_name INTEGER, commit_sha TEXT, package TEXT, dir_path TEXT)", TABLE_PACKAGES); // No "PRIMARY KEY(XX)". Makes the insertion slow.
+            String q_create = String.format("CREATE TABLE %s (package_decl_Id INTEGER, project_name TEXT, commit_sha TEXT, package TEXT, dir_path TEXT)", TABLE_PACKAGES); // No "PRIMARY KEY(XX)". Makes the insertion slow.
 
             stmt.execute(q_drop);
             stmt.execute(q_create);
@@ -83,38 +86,58 @@ public class PackagesDeclarationDB {
         }
     }
 
-
-    public static Map<String/*RepoFullname*/, Set<PackageDeclaration>> readAllRepoPackages(String resultPath)
+    public static List<PackageDeclaration> ReadFromSqlite(Path filepath)
     {
-        /*Connection conn = null;
+        Map<String, Set<PackageDeclaration>> res = ReadPackagesFromSqlite_GroupByProject(filepath);
+        if(res==null)
+            return null;
+        List<PackageDeclaration> flatten = new ArrayList<>();
+        for(var v: res.values())
+            flatten.addAll(v);
+        return flatten;
+    }
+
+    /**
+     * Corresponding method to {@link #WriteToSQLite}
+     */
+    public static Map<String/*RepoFullname*/, Set<PackageDeclaration>> ReadPackagesFromSqlite_GroupByProject(Path filepath)
+    {
+        if(!Files.exists(filepath) || !Files.isRegularFile(filepath)) {
+            logger.error("Database not found at {}", filepath);
+            return null;
+        }
+
         Map<String, Set<PackageDeclaration>> all = new HashMap<>();
+        Connection conn = null;
+        String sqlitePath = "jdbc:sqlite:" + filepath;
         try {
-            String sqlitePath = "jdbc:sqlite:" + resultPath;
             conn = DriverManager.getConnection(sqlitePath);
             Statement stmt = conn.createStatement();
-            String query =  String.format("SELECT R.repoId, R.repoFullname, P.packageDefId, P.package\n" +
-                    "FROM %s R JOIN %s P on R.repoId = P.repoId", RESULT_TABLE_NAME_PACKAGE_REPO, RESULT_TABLE_NAME_PACKAGE_P);
-            ResultSet rs = stmt.executeQuery(query);
 
+
+            String query =  String.format("SELECT * FROM %s", TABLE_PACKAGES);
+            ResultSet rs = stmt.executeQuery(query);
             while (rs.next())
             {
-//                int repoId = rs.getInt("repoId");
+                int id = rs.getInt("package_decl_Id");
                 String projectName = rs.getString("project_name");
                 String commitSHA = rs.getString("commit_sha");
                 String packageName = rs.getString("package");
+                String dir_path = rs.getString("dir_path");
 
-                var fff = new PackageDeclaration(packageName, null, null);
-                fff.commitSHA = commitSHA;
-                if(all.containsKey(repoFullname))
+                PackageDeclaration pd = new PackageDeclaration(projectName, dir_path, packageName);
+                pd.commitSHA = commitSHA;
+
+                if(all.containsKey(projectName))
                 {
-                    Set<PackageDeclaration> packagesForThisLibId = all.get(repoFullname);
-                    packagesForThisLibId.add( );
+                    Set<PackageDeclaration> packagesForThisProject = all.get(projectName);
+                    packagesForThisProject.add(pd);
                 }
                 else
                 {
-                    Set<PackageDeclaration> packagesForThisLibId_new = new HashSet<>();
-                    packagesForThisLibId_new.add( fff);
-                    all.put(repoFullname, packagesForThisLibId_new);
+                    Set<PackageDeclaration> packagesForThisProject_new = new HashSet<>();
+                    packagesForThisProject_new.add(pd);
+                    all.put(projectName, packagesForThisProject_new);
                 }
             }
 
@@ -130,8 +153,7 @@ public class PackagesDeclarationDB {
             }
         }
 
-        return all;*/
-        return null;
+        return all;
     }
 
 }

@@ -18,7 +18,7 @@
         <resources>
             <resource>
                 <directory>src/main/resources</directory>
-                <!-- Comment out line below when running code as standalone jar-->
+                <!-- Uncomment line below when exporting project as .jar file-->
 <!--                <excludes>-->
 <!--                    <exclude>**/log4j.properties</exclude>-->
 <!--                </excludes>-->

@@ -7,6 +7,7 @@ import com.usi.emadpres.parser.extra_tobedeleted.MavenLibUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.nio.file.Path;
 import java.util.*;
 
 /**
@@ -37,8 +38,8 @@ public class FindMavenInRepos {
         }
 
         ArrayList<MavenLibInfo> mavenLibInfos = MavenLibUtils.loadMavenInfo(args[0]);
-        Map<String/*Lib Identifier*/, Set<PackageDeclaration>> libIdentifierToPackages = PackagesDeclarationDB.readAllRepoPackages(args[1]);
-        Map<String/*RepoFullname*/, Set<PackageDeclaration>> repoToPackages = PackagesDeclarationDB.readAllRepoPackages(args[2]);
+        Map<String/*Lib Identifier*/, Set<PackageDeclaration>> libIdentifierToPackages = PackagesDeclarationDB.ReadPackagesFromSqlite_GroupByProject(Path.of(args[1]));
+        Map<String/*RepoFullname*/, Set<PackageDeclaration>> repoToPackages = PackagesDeclarationDB.ReadPackagesFromSqlite_GroupByProject(Path.of(args[2]));
 
         Map<String, List<String>> libsVersion = MavenLibUtils.giveVersionsSorted(mavenLibInfos, true, libIdentifierToPackages);
 
