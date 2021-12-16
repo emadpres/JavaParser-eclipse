@@ -13,6 +13,7 @@ public class MethodDeclarationInfo {
     public String qualifiedClassName;
     public String name, returnType, argsTypes;
     public int nArgs;
+    public boolean arbitraryNumberOfArguments=false; //when we have "..."
 
     // Method -> Declarations
     public boolean hasJavaDoc = false;
@@ -44,9 +45,12 @@ public class MethodDeclarationInfo {
 
     @Override
     public String toString() {
-        int t = qualifiedClassName.lastIndexOf('.');
-        if(t==-1) t=-1;
-        return String.format("[%s]    %s",qualifiedClassName.substring(t+1), name);
+        if(qualifiedClassName!=null) {
+            int t = qualifiedClassName.lastIndexOf('.');
+            return String.format("[%s]    %s(%d%s)", qualifiedClassName.substring(t + 1), name, nArgs, arbitraryNumberOfArguments?"+":"");
+        }
+        else
+            return String.format("%s(%d%s)", name, nArgs, arbitraryNumberOfArguments?"+":"");
         //return String.format("@Method Declaration: %s %s..%s (%s) <%d>\n", returnType, qualifiedClassName, name, argsTypes, nArgs);
     }
 
@@ -55,20 +59,46 @@ public class MethodDeclarationInfo {
         return String.format("[%s] %s (%s) -> %s",qualifiedClassName, name, argsTypes, returnType);
     }
 
-    /**
-     * Note that we only consider {@link MethodDeclarationInfo#name}, {@link MethodDeclarationInfo#qualifiedClassName}, {@link MethodDeclarationInfo#returnType} and {@link MethodDeclarationInfo#argsTypes}
-     */
-    @Override
-    public boolean equals(Object obj) {
-        if (!(obj instanceof MethodInvocationInfo)) {
-            return false;
-        }
-        MethodInvocationInfo other = (MethodInvocationInfo) obj;
+
+    public boolean MatchMethodInvocation(MethodInvocationInfo other)
+    {
         EqualsBuilder builder = new EqualsBuilder();
         builder.append(name, other.name);
         builder.append(qualifiedClassName, other.qualifiedClassName);
         builder.append(returnType, other.returnType);
         builder.append(argsTypes, other.argsTypes);
+        boolean isEqualSoFar = builder.isEquals();
+        if(isEqualSoFar==false)
+            return false;
+
+        if(this.arbitraryNumberOfArguments==false) {
+            if(nArgs!= other.nArgs)
+                return false;
+        }
+        else {
+            if (this.nArgs > other.nArgs)
+                return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Note that we only consider {@link MethodDeclarationInfo#name}, {@link MethodDeclarationInfo#qualifiedClassName}, {@link MethodDeclarationInfo#returnType} and {@link MethodDeclarationInfo#argsTypes}
+     */
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof MethodDeclarationInfo)) {
+            return false;
+        }
+        MethodDeclarationInfo other = (MethodDeclarationInfo) obj;
+        EqualsBuilder builder = new EqualsBuilder();
+        builder.append(name, other.name);
+        builder.append(qualifiedClassName, other.qualifiedClassName);
+        builder.append(returnType, other.returnType);
+        builder.append(argsTypes, other.argsTypes);
+        builder.append(nArgs, other.nArgs);
+        builder.append(arbitraryNumberOfArguments, other.arbitraryNumberOfArguments);
         return builder.isEquals();
     }
 
