@@ -5,7 +5,7 @@ import com.usi.emadpres.parser.parser.ds.*;
 import com.usi.emadpres.parser.parser.ParserCore.visitors.MethodDeclarationVisitor;
 import com.usi.emadpres.parser.parser.ParserCore.visitors.MethodInvocationVisitor;
 import com.usi.emadpres.parser.parser.ParserCore.visitors.UserTypesAndPackagesVisitor;
-import com.usi.emadpres.parser.parser.ds.PackageDeclaration;
+import com.usi.emadpres.parser.parser.ds.PackageDeclarationInfo;
 import org.apache.commons.io.FileUtils;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jdt.core.JavaCore;
@@ -15,7 +15,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -143,7 +142,7 @@ public class EclipseJavaParser {
 
         ArrayList<MethodInvocationInfo> methodInvocations = new ArrayList<>();
         ArrayList<MethodDeclarationInfo> methodDeclarations = new ArrayList<>();
-        Set<PackageDeclaration> packageDeclarations = new HashSet<>();
+        Set<PackageDeclarationInfo> packageDeclarations = new HashSet<>();
         Set<UserTypeDeclaration> userTypeDeclarations = new HashSet<>();
         Set<String> relevantJavaFiles = new HashSet<>(); // used when config.storeJavaFileContent=true
 
@@ -206,7 +205,7 @@ public class EclipseJavaParser {
 
                         for (UserTypeDeclaration t : tVisitor.userTypeDeclarations) {
                             if (t.isBinded == false && tVisitor.packageNames.size() == 1) {
-                                PackageDeclaration thePackageDecl = tVisitor.packageNames.iterator().next();
+                                PackageDeclarationInfo thePackageDecl = tVisitor.packageNames.iterator().next();
                                 t.fullyQualifiedName = thePackageDecl.fullyQualifiedPackageName + t.fullyQualifiedName;
                             }
                             userTypeDeclarations.add(t);

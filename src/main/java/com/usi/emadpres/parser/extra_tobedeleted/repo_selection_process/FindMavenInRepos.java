@@ -2,7 +2,7 @@ package com.usi.emadpres.parser.extra_tobedeleted.repo_selection_process;
 
 import com.usi.emadpres.MavenUtils.ds.MavenLibInfo;
 import com.usi.emadpres.parser.parser.db.PackagesDeclarationDB;
-import com.usi.emadpres.parser.parser.ds.PackageDeclaration;
+import com.usi.emadpres.parser.parser.ds.PackageDeclarationInfo;
 import com.usi.emadpres.parser.extra_tobedeleted.MavenLibUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,8 +38,8 @@ public class FindMavenInRepos {
         }
 
         ArrayList<MavenLibInfo> mavenLibInfos = MavenLibUtils.loadMavenInfo(args[0]);
-        Map<String/*Lib Identifier*/, Set<PackageDeclaration>> libIdentifierToPackages = PackagesDeclarationDB.ReadPackagesFromSqlite_GroupByProject(Path.of(args[1]));
-        Map<String/*RepoFullname*/, Set<PackageDeclaration>> repoToPackages = PackagesDeclarationDB.ReadPackagesFromSqlite_GroupByProject(Path.of(args[2]));
+        Map<String/*Lib Identifier*/, Set<PackageDeclarationInfo>> libIdentifierToPackages = PackagesDeclarationDB.ReadPackagesFromSqlite_GroupByProject(Path.of(args[1]));
+        Map<String/*RepoFullname*/, Set<PackageDeclarationInfo>> repoToPackages = PackagesDeclarationDB.ReadPackagesFromSqlite_GroupByProject(Path.of(args[2]));
 
         Map<String, List<String>> libsVersion = MavenLibUtils.giveVersionsSorted(mavenLibInfos, true, libIdentifierToPackages);
 
@@ -56,7 +56,7 @@ public class FindMavenInRepos {
             if(!libsVersion.get(libName).get(0).equals(curLibInfo.version))
                 continue; /* This curLibInfo doesn't refer to latest version we have on this machine*/
 
-            Set<PackageDeclaration> packages_of_curLibWhichIsLatestVersion = libIdentifierToPackages.get(curLibInfo.GetIdentifier());
+            Set<PackageDeclarationInfo> packages_of_curLibWhichIsLatestVersion = libIdentifierToPackages.get(curLibInfo.GetIdentifier());
 
             if(packages_of_curLibWhichIsLatestVersion==null) {
                 nUnexpectedMissingLibPackages++;
@@ -67,12 +67,12 @@ public class FindMavenInRepos {
 
             ////////////////////////////////////////////////////////////////////////////////////
 
-            Iterator<Map.Entry<String, Set<PackageDeclaration>>> repoPackIt = repoToPackages.entrySet().iterator();
+            Iterator<Map.Entry<String, Set<PackageDeclarationInfo>>> repoPackIt = repoToPackages.entrySet().iterator();
             while(repoPackIt.hasNext())
             {
-                Map.Entry<String, Set<PackageDeclaration>> next = repoPackIt.next();
+                Map.Entry<String, Set<PackageDeclarationInfo>> next = repoPackIt.next();
                 String curRepoFullname = next.getKey();
-                Set<PackageDeclaration> curRepoPackages = next.getValue();
+                Set<PackageDeclarationInfo> curRepoPackages = next.getValue();
                 if(curRepoPackages==null)
                     continue;
 

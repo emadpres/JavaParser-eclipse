@@ -43,7 +43,7 @@ public class main_MethodInvocations {
 
         logger.info("Starting Extraction Invocations ...");
         ArrayList<MethodInvocationInfo> allrepos_methodInvocations = new ArrayList<>();
-        Map<String, Set<PackageDeclaration>> allrepos_packageDef = new HashMap<>();
+        Map<String, Set<PackageDeclarationInfo>> allrepos_packageDef = new HashMap<>();
         int nError = 0;
         int index=0;
         long totalUnique_fileMethodInv_pairs = 0, totalMethodInv=0, totalPackgesCount=0;

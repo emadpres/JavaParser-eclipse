@@ -3,7 +3,7 @@ package com.usi.emadpres.parser.parser.ParserCore.visitors;
 import java.util.HashSet;
 import java.util.Set;
 
-import com.usi.emadpres.parser.parser.ds.PackageDeclaration;
+import com.usi.emadpres.parser.parser.ds.PackageDeclarationInfo;
 import com.usi.emadpres.parser.parser.ds.UserTypeDeclaration;
 import org.eclipse.jdt.core.dom.*;
 import org.slf4j.Logger;
@@ -18,7 +18,7 @@ public class UserTypesAndPackagesVisitor extends ASTVisitor {
     private static final Logger logger = LoggerFactory.getLogger(UserTypesAndPackagesVisitor.class);
 
     public Set<UserTypeDeclaration> userTypeDeclarations = new HashSet<>();
-	public Set<PackageDeclaration> packageNames = new HashSet<>();
+	public Set<PackageDeclarationInfo> packageNames = new HashSet<>();
 
 	private final CompilationUnit unit;
 	private final String projectName, commitSHA, fileRelativePath, dirRelativePath;
@@ -43,7 +43,7 @@ public class UserTypesAndPackagesVisitor extends ASTVisitor {
         IPackageBinding binding = node.resolveBinding();
         if(binding!=null)
         {
-            PackageDeclaration newP = new PackageDeclaration(projectName, dirRelativePath, binding.getName());
+            PackageDeclarationInfo newP = new PackageDeclarationInfo(projectName, dirRelativePath, binding.getName());
             newP.commitSHA = commitSHA;
             packageNames.add(newP);
         }

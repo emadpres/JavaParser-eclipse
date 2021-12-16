@@ -1,7 +1,6 @@
 package com.usi.emadpres.parser.parser.db;
 
-import com.usi.emadpres.parser.parser.ds.MethodDeclarationInfo;
-import com.usi.emadpres.parser.parser.ds.PackageDeclaration;
+import com.usi.emadpres.parser.parser.ds.PackageDeclarationInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,7 +14,7 @@ public class PackagesDeclarationDB {
     private static final Logger logger = LoggerFactory.getLogger(PackagesDeclarationDB.class);
     public static final String TABLE_PACKAGES = "PackageDeclaration";
 
-    public static void WriteToSQLite(Set<PackageDeclaration> packageDeclarationList, String path)
+    public static void WriteToSQLite(Set<PackageDeclarationInfo> packageDeclarationList, String path)
     {
         if(packageDeclarationList==null) return;
 
@@ -49,7 +48,7 @@ public class PackagesDeclarationDB {
             final int BATCH_SIZE = 500000, total_packages = packageDeclarationList.size();;
             int lastReportedProgress = -1, currentProgress;
             int index=0;
-            for(PackageDeclaration p: packageDeclarationList)
+            for(PackageDeclarationInfo p: packageDeclarationList)
             {
                 index++;
 
@@ -86,12 +85,12 @@ public class PackagesDeclarationDB {
         }
     }
 
-    public static List<PackageDeclaration> ReadFromSqlite(Path filepath)
+    public static List<PackageDeclarationInfo> ReadFromSqlite(Path filepath)
     {
-        Map<String, Set<PackageDeclaration>> res = ReadPackagesFromSqlite_GroupByProject(filepath);
+        Map<String, Set<PackageDeclarationInfo>> res = ReadPackagesFromSqlite_GroupByProject(filepath);
         if(res==null)
             return null;
-        List<PackageDeclaration> flatten = new ArrayList<>();
+        List<PackageDeclarationInfo> flatten = new ArrayList<>();
         for(var v: res.values())
             flatten.addAll(v);
         return flatten;
@@ -100,14 +99,14 @@ public class PackagesDeclarationDB {
     /**
      * Corresponding method to {@link #WriteToSQLite}
      */
-    public static Map<String/*RepoFullname*/, Set<PackageDeclaration>> ReadPackagesFromSqlite_GroupByProject(Path filepath)
+    public static Map<String/*RepoFullname*/, Set<PackageDeclarationInfo>> ReadPackagesFromSqlite_GroupByProject(Path filepath)
     {
         if(!Files.exists(filepath) || !Files.isRegularFile(filepath)) {
             logger.error("Database not found at {}", filepath);
             return null;
         }
 
-        Map<String, Set<PackageDeclaration>> all = new HashMap<>();
+        Map<String, Set<PackageDeclarationInfo>> all = new HashMap<>();
         Connection conn = null;
         String sqlitePath = "jdbc:sqlite:" + filepath;
         try {
@@ -125,17 +124,17 @@ public class PackagesDeclarationDB {
                 String packageName = rs.getString("package");
                 String dir_path = rs.getString("dir_path");
 
-                PackageDeclaration pd = new PackageDeclaration(projectName, dir_path, packageName);
+                PackageDeclarationInfo pd = new PackageDeclarationInfo(projectName, dir_path, packageName);
                 pd.commitSHA = commitSHA;
 
                 if(all.containsKey(projectName))
                 {
-                    Set<PackageDeclaration> packagesForThisProject = all.get(projectName);
+                    Set<PackageDeclarationInfo> packagesForThisProject = all.get(projectName);
                     packagesForThisProject.add(pd);
                 }
                 else
                 {
-                    Set<PackageDeclaration> packagesForThisProject_new = new HashSet<>();
+                    Set<PackageDeclarationInfo> packagesForThisProject_new = new HashSet<>();
                     packagesForThisProject_new.add(pd);
                     all.put(projectName, packagesForThisProject_new);
                 }

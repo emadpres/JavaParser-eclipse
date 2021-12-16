@@ -14,7 +14,7 @@ public class ProjectParsingResult {
     public String projectName;
     public List<MethodInvocationInfo> methodInvocations;
     public List<MethodDeclarationInfo> methodDeclarations;
-    public Set<PackageDeclaration> packageDeclarations;
+    public Set<PackageDeclarationInfo> packageDeclarations;
     public Set<UserTypeDeclaration> userTypeDeclarations;
     public List<JavaFileInfo> javaFiles=null;
 
@@ -30,7 +30,7 @@ public class ProjectParsingResult {
 
     public ProjectParsingResult(String projectName, ArrayList<MethodInvocationInfo> methodInvocations,
                                 ArrayList<MethodDeclarationInfo> methodDeclarations,
-                                Set<PackageDeclaration> packageDeclarations,
+                                Set<PackageDeclarationInfo> packageDeclarations,
                                 Set<UserTypeDeclaration> userTypeDeclarations) {
         incompleteResult = false;
         this.projectName = projectName;

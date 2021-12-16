@@ -3,7 +3,7 @@ package com.usi.emadpres.parser.parser.ds;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
-public class PackageDeclaration {
+public class PackageDeclarationInfo {
     public String projectName; // repoFullName OR groupId:artifactId:version
     public String commitSHA = null;
     public String dirRelativePath;
@@ -12,7 +12,7 @@ public class PackageDeclaration {
     /**
      * @param dirRelativePath Since all files within same dir has the same package, we store directory instead if file path.
      */
-    public PackageDeclaration(String projectName, String dirRelativePath, String fullyQualifiedPackageName)
+    public PackageDeclarationInfo(String projectName, String dirRelativePath, String fullyQualifiedPackageName)
     {
         this.projectName = projectName;
         this.dirRelativePath = dirRelativePath;
@@ -22,10 +22,10 @@ public class PackageDeclaration {
     @Override
     public boolean equals(Object obj) {
 
-        if (!(obj instanceof PackageDeclaration)) {
+        if (!(obj instanceof PackageDeclarationInfo)) {
             return false;
         }
-        PackageDeclaration otherAdmin = (PackageDeclaration) obj;
+        PackageDeclarationInfo otherAdmin = (PackageDeclarationInfo) obj;
         EqualsBuilder builder = new EqualsBuilder();
         builder.append(projectName, otherAdmin.projectName);
         builder.append(fullyQualifiedPackageName, otherAdmin.fullyQualifiedPackageName);

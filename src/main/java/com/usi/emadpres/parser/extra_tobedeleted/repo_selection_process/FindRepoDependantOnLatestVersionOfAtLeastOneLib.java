@@ -4,7 +4,7 @@ import com.opencsv.CSVWriter;
 import com.usi.emadpres.MavenUtils.ds.MavenLibInfo;
 import com.usi.emadpres.MavenUtils.ds.PomInfoDB;
 import com.usi.emadpres.parser.parser.db.PackagesDeclarationDB;
-import com.usi.emadpres.parser.parser.ds.PackageDeclaration;
+import com.usi.emadpres.parser.parser.ds.PackageDeclarationInfo;
 import com.usi.emadpres.parser.extra_tobedeleted.MavenLibUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,7 +43,7 @@ public class FindRepoDependantOnLatestVersionOfAtLeastOneLib {
         ArrayList<MavenLibInfo> mavenLibInfos = MavenLibUtils.loadMavenInfo(args[0]);
         //Map<String, ArrayList<MavenLibInfo>> allReposDependencies = RepoDependency.readRepoListAndDependencies(args[1]);
         Map<String, List<MavenLibInfo>> allReposDependencies = PomInfoDB.ReadSQLite_Repo2Library(args[1]);
-        Map<String/*Lib Identifier*/, Set<PackageDeclaration>> libIdentifierToPackages = PackagesDeclarationDB.ReadPackagesFromSqlite_GroupByProject(Path.of(args[2]));
+        Map<String/*Lib Identifier*/, Set<PackageDeclarationInfo>> libIdentifierToPackages = PackagesDeclarationDB.ReadPackagesFromSqlite_GroupByProject(Path.of(args[2]));
         Map<String, List<String>> libsVersion = MavenLibUtils.giveVersionsSorted(mavenLibInfos, true, libIdentifierToPackages);
 
 

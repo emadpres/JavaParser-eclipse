@@ -3,7 +3,7 @@ package com.usi.emadpres.parser.extra_tobedeleted;
 import com.opencsv.CSVReader;
 import com.opencsv.exceptions.CsvValidationException;
 import com.usi.emadpres.MavenUtils.ds.MavenLibInfo;
-import com.usi.emadpres.parser.parser.ds.PackageDeclaration;
+import com.usi.emadpres.parser.parser.ds.PackageDeclarationInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -61,7 +61,7 @@ public class MavenLibUtils {
     public static Map<String/*groupId:artifactId*/, List<String/*version*/>>
         giveVersionsSorted(ArrayList<MavenLibInfo> allMavenInfo,
                            boolean onlyIfExistsOnThisMachine,
-                           Map<String, Set<PackageDeclaration>> libIdentifierToPackages /*this last param is a workaround to make the computation more accurate*/)
+                           Map<String, Set<PackageDeclarationInfo>> libIdentifierToPackages /*this last param is a workaround to make the computation more accurate*/)
     {
         Map<String/*groupId:artifactId*/, List<String/*version*/>> ret = new HashMap<>();
 
